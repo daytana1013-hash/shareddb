@@ -1,0 +1,35 @@
+[
+  {
+    "id": 1704067200000,
+    "type": "folder",
+    "name": "2024 연간 보고서",
+    "uploader": "김민준",
+    "url": "",
+    "tags": ["보고서", "2024", "연간"],
+    "memo": "재무/운영 연간 결산 모음",
+    "password": "",
+    "date": 1704067200000
+  },
+  {
+    "id": 1706745600000,
+    "type": "pdf",
+    "name": "Q4 실적발표 자료.pdf",
+    "uploader": "이수진",
+    "url": "https://example.com/q4-results.pdf",
+    "tags": ["실적", "IR", "2024"],
+    "memo": "외부 공개용",
+    "password": "",
+    "date": 1706745600000
+  },
+  {
+    "id": 1709251200000,
+    "type": "link",
+    "name": "팀 노션 워크스페이스",
+    "uploader": "박지훈",
+    "url": "https://notion.so",
+    "tags": ["노션", "협업"],
+    "memo": "",
+    "password": "",
+    "date": 1709251200000
+  }
+]

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SharedDB</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Pretendard:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- ── LOCK SCREEN ── -->
+<div id="lock-screen" class="lock-screen">
+  <div class="lock-card">
+    <div class="lock-logo">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M20 6h-2.18c.07-.44.18-.88.18-1.36C18 2.06 15.96 0 13.36 0c-1.3 0-2.48.53-3.36 1.36C9.12.53 7.94 0 6.64 0 4.04 0 2 2.06 2 4.64c0 .48.11.92.18 1.36H0v14h8.73l3.27 3 3.27-3H24V6h-4zM13.36 2c1.46 0 2.64 1.18 2.64 2.64 0 1.46-1.18 2.64-2.64 2.64H12V5.27c0-1.46 1.18-2.64 1.36-3.27zm-6.72 0C8.1 2.63 9.28 3.81 9.28 5.27V7.28H7.64C6.18 7.28 5 6.1 5 4.64S5.18 2 6.64 2zM2 18V8h9v12l-1.5-1.5L8 20H2zm20 0h-6l-1.5-1.5L13 20V8h9v10z"/></svg>
+    </div>
+    <h1 class="lock-title">SharedDB</h1>
+    <p class="lock-sub">팀 공유 자료 검색 시스템</p>
+    <div class="lock-form">
+      <input id="input-name" class="lock-input" type="text" placeholder="이름" autocomplete="off" />
+      <input id="input-code" class="lock-input mono" type="password" placeholder="액세스 코드" />
+      <div id="lock-error" class="lock-error" style="display:none">올바른 코드가 아닙니다.</div>
+      <button class="lock-btn" onclick="tryLogin()">접속하기 →</button>
+    </div>
+    <p class="lock-hint" id="demo-hint"></p>
+  </div>
+</div>
+
+<!-- ── MAIN APP ── -->
+<div id="app" class="app" style="display:none">
+
+  <header class="header">
+    <div class="header-left">
+      <div class="header-logo">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M20 6h-2.18c.07-.44.18-.88.18-1.36C18 2.06 15.96 0 13.36 0c-1.3 0-2.48.53-3.36 1.36C9.12.53 7.94 0 6.64 0 4.04 0 2 2.06 2 4.64c0 .48.11.92.18 1.36H0v14h8.73l3.27 3 3.27-3H24V6h-4z"/></svg>
+      </div>
+      <span class="header-brand">SharedDB</span>
+    </div>
+    <div class="header-right">
+      <span class="header-user" id="header-user"></span>
+      <button class="btn-logout" onclick="logout()">로그아웃</button>
+    </div>
+  </header>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+      </svg>
+      <input id="search-input" class="search-input" type="text" placeholder="파일명, 폴더명, 업로더 검색..." oninput="renderFiles()" />
+      <button class="search-clear" id="search-clear" onclick="clearSearch()" style="display:none">✕</button>
+    </div>
+    <div class="toolbar-actions">
+      <select id="sort-select" class="sort-select" onchange="renderFiles()">
+        <option value="oldest">오래된순 ↑</option>
+        <option value="newest">최신순 ↓</option>
+        <option value="name_asc">이름 A→Z</option>
+        <option value="name_desc">이름 Z→A</option>
+        <option value="type">유형순</option>
+      </select>
+      <button class="btn-add" onclick="openModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+        항목 추가
+      </button>
+    </div>
+  </div>
+
+  <div class="stats-bar">
+    <span id="stat-text" class="stat-text"></span>
+    <div class="filter-chips" id="filter-chips"></div>
+  </div>
+
+  <main class="main-content">
+    <div class="content-wrap">
+
+      <!-- 파일 목록 -->
+      <div class="list-panel" id="list-panel">
+        <div class="table-wrap">
+          <table class="file-table">
+            <thead>
+              <tr>
+                <th class="col-icon"></th>
+                <th class="col-name">이름</th>
+                <th class="col-uploader">업로더</th>
+                <th class="col-link">미리보기</th>
+                <th class="col-date" onclick="toggleDateSort()" style="cursor:pointer">날짜 <span id="date-arrow">↑</span></th>
+                <th class="col-memo">메모</th>
+              </tr>
+            </thead>
+            <tbody id="file-tbody"></tbody>
+          </table>
+          <div id="empty-state" class="empty-state" style="display:none">
+            <div class="empty-icon">⌕</div>
+            <p class="empty-title">검색 결과가 없습니다</p>
+            <p class="empty-sub">다른 키워드로 검색해보세요.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 미리보기 패널 -->
+      <div class="preview-panel" id="preview-panel" style="display:none">
+        <div class="preview-header">
+          <div class="preview-title-wrap">
+            <span class="preview-icon" id="preview-icon"></span>
+            <span class="preview-title" id="preview-title">미리보기</span>
+          </div>
+          <div class="preview-actions">
+            <a class="preview-open-btn" id="preview-open-btn" href="#" target="_blank" rel="noopener">
+              새 탭에서 열기 ↗
+            </a>
+            <button class="preview-close-btn" onclick="closePreview()">✕</button>
+          </div>
+        </div>
+        <div class="preview-body" id="preview-body">
+          <div class="preview-loading" id="preview-loading">
+            <div class="spinner"></div>
+            <p>불러오는 중...</p>
+          </div>
+          <iframe id="preview-iframe" class="preview-iframe" style="display:none" sandbox="allow-scripts allow-same-origin allow-forms allow-popups" allowfullscreen></iframe>
+          <div class="preview-blocked" id="preview-blocked" style="display:none">
+            <div class="blocked-icon">🔒</div>
+            <p class="blocked-title">미리보기를 표시할 수 없습니다</p>
+            <p class="blocked-sub" id="blocked-reason"></p>
+            <a class="btn-open-external" id="blocked-open-btn" href="#" target="_blank" rel="noopener">새 탭에서 열기 ↗</a>
+          </div>
+        </div>
+        <div class="preview-info" id="preview-info"></div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- ── ADD MODAL ── -->
+<div id="modal-bg" class="modal-bg" style="display:none" onclick="onModalBgClick(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">새 항목 추가</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>유형</label>
+        <div class="type-toggle">
+          <button class="type-btn active" id="btn-type-file" onclick="setType('file')">📄 파일</button>
+          <button class="type-btn" id="btn-type-folder" onclick="setType('folder')">📁 폴더</button>
+          <button class="type-btn" id="btn-type-link" onclick="setType('link')">🔗 링크</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>이름 <span class="required">*</span></label>
+        <input id="m-name" class="m-input" type="text" placeholder="파일명 또는 폴더명" />
+      </div>
+      <div class="field" id="field-link" style="display:none">
+        <label>URL <span class="required">*</span></label>
+        <input id="m-url" class="m-input" type="url" placeholder="https://" />
+      </div>
+      <div class="field">
+        <label>태그 <span class="field-hint">(쉼표로 구분)</span></label>
+        <input id="m-tags" class="m-input" type="text" placeholder="보고서, 2024, 재무" />
+      </div>
+      <div class="field">
+        <label>메모</label>
+        <input id="m-memo" class="m-input" type="text" placeholder="간단한 설명 (선택)" />
+      </div>
+      <div class="field" id="field-password">
+        <label>비밀번호 보호 <span class="field-hint">(항목별 잠금, 선택)</span></label>
+        <input id="m-item-pw" class="m-input mono" type="password" placeholder="비워두면 공개" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">취소</button>
+      <button class="btn-submit" onclick="submitItem()">추가하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── ITEM PASSWORD MODAL ── -->
+<div id="item-pw-bg" class="modal-bg" style="display:none" onclick="onItemPwBgClick(event)">
+  <div class="modal" style="max-width:340px">
+    <div class="modal-header">
+      <span class="modal-title">🔒 잠긴 항목</span>
+      <button class="modal-close" onclick="closeItemPw()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:#64748b;margin-bottom:12px" id="item-pw-label"></p>
+      <input id="item-pw-input" class="m-input mono" type="password" placeholder="비밀번호 입력" />
+      <div id="item-pw-error" style="display:none;font-size:12px;color:#ef4444;margin-top:6px">비밀번호가 틀렸습니다.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeItemPw()">취소</button>
+      <button class="btn-submit" onclick="submitItemPw()">확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div id="toast" class="toast"></div>
+
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
