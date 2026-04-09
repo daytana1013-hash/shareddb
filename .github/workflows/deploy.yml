@@ -24,12 +24,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 액세스 코드를 GitHub Secrets에서 주입
-      # Settings → Secrets → SHAREDDB_ACCESS_CODE 로 등록하세요
-      - name: Inject access code from Secret
+      - name: Inject secrets into config.js
         run: |
           sed -i "s/accessCode: 'db2024'/accessCode: '${{ secrets.SHAREDDB_ACCESS_CODE }}'/" js/config.js
           sed -i "s/showDemoHint: true/showDemoHint: false/" js/config.js
+          sed -i "s|notionApiKey: ''|notionApiKey: '${{ secrets.NOTION_API_KEY }}'|" js/config.js
+          sed -i "s|gasProxyUrl: ''|gasProxyUrl: '${{ secrets.GAS_PROXY_URL }}'|" js/config.js
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
